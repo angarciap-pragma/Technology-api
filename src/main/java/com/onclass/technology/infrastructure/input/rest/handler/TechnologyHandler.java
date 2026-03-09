@@ -29,6 +29,7 @@ public class TechnologyHandler {
 
     // Registra una nueva tecnologia aplicando validaciones de entrada y dominio.
     public Mono<ServerResponse> createTechnology(ServerRequest request) {
+        log.info("HTTP POST {} - starting technology creation", request.path());
         return request.bodyToMono(CreateTechnologyRequest.class)
                 .switchIfEmpty(Mono.error(new ValidationException("Technology payload is required")))
                 .flatMap(this::validateRequest)
@@ -37,6 +38,7 @@ public class TechnologyHandler {
                 .flatMap(createTechnologyUseCase::createTechnology)
                 .map(technologyRestMapper::toResponse)
                 .doOnNext(response -> log.info("Technology created successfully with id={}", response.id()))
+                .doOnError(error -> log.error("Error creating technology: {}", error.getMessage()))
                 .flatMap(response -> ServerResponse.status(201)
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(response));
@@ -45,8 +47,11 @@ public class TechnologyHandler {
     // Obtiene una tecnologia por id.
     public Mono<ServerResponse> findTechnologyById(ServerRequest request) {
         Long technologyId = parseTechnologyId(request.pathVariable("id"));
+        log.info("HTTP GET {} - finding technology by id={}", request.path(), technologyId);
         return findTechnologyByIdUseCase.findById(technologyId)
                 .map(technologyRestMapper::toResponse)
+                .doOnNext(response -> log.info("Technology found for id={} with name='{}'", response.id(), response.name()))
+                .doOnError(error -> log.error("Error finding technology by id={}: {}", technologyId, error.getMessage()))
                 .flatMap(response -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(response));

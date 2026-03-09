@@ -6,10 +6,12 @@ import com.onclass.technology.domain.exception.ValidationException;
 import com.onclass.technology.domain.model.Technology;
 import com.onclass.technology.domain.port.TechnologyRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import java.util.Locale;
 
+@Slf4j
 @RequiredArgsConstructor
 public class CreateCreateTechnologyService implements CreateTechnologyUseCase {
 
@@ -20,6 +22,7 @@ public class CreateCreateTechnologyService implements CreateTechnologyUseCase {
     public Mono<Technology> createTechnology(Technology technology) {
         // Envuelve la logica para que errores de validacion sean reactivos.
         return Mono.defer(() -> {
+            log.debug("Starting createTechnology in application layer");
             if (technology == null) {
                 throw new ValidationException("Technology payload is required");
             }
@@ -32,14 +35,17 @@ public class CreateCreateTechnologyService implements CreateTechnologyUseCase {
 
             // Valida que no exista el nombre y persiste si esta disponible.
             return technologyRepositoryPort.existsByNormalizedName(normalizedName)
+                    .doOnNext(exists -> log.debug("Uniqueness check for normalizedName='{}': exists={}", normalizedName, exists))
                     // Evalua el resultado de existencia para decidir flujo.
                     .flatMap(exists -> {
                         // Si ya existe, retorna error de nombre duplicado.
                         if (exists) {
+                            log.warn("Business conflict: duplicated technology name '{}'", technology.getName());
                             return Mono.error(new ConflictException("Technology name already exists"));
                         }
                         // Si no existe, guarda la nueva tecnologia.
-                        return technologyRepositoryPort.save(technology);
+                        return technologyRepositoryPort.save(technology)
+                                .doOnSuccess(saved -> log.info("Technology persisted from application layer with id={}", saved.getId()));
                     });
         });
     }

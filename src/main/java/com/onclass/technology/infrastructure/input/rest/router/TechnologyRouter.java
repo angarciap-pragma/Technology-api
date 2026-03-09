@@ -2,9 +2,11 @@ package com.onclass.technology.infrastructure.input.rest.router;
 
 import com.onclass.technology.infrastructure.input.rest.handler.TechnologyHandler;
 import com.onclass.technology.infrastructure.input.rest.routes.TechnologyRoutes;
+import com.onclass.technology.infrastructure.input.rest.dto.request.CreateTechnologyRequest;
 import com.onclass.technology.infrastructure.input.rest.dto.response.ErrorResponse;
 import com.onclass.technology.infrastructure.input.rest.dto.response.TechnologyResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,6 +36,11 @@ public class TechnologyRouter {
                             operationId = "createTechnology",
                             summary = "Register technology",
                             description = "Registers a technology to be used by bootcamp capabilities",
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    description = "Payload to create a technology",
+                                    content = @Content(schema = @Schema(implementation = CreateTechnologyRequest.class))
+                            ),
                             responses = {
                                     @ApiResponse(
                                             responseCode = "201",
