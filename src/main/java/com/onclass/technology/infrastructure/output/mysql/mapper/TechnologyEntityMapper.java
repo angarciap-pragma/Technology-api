@@ -1,0 +1,25 @@
+package com.onclass.technology.infrastructure.output.mysql.mapper;
+
+import com.onclass.technology.domain.model.Technology;
+import com.onclass.technology.infrastructure.output.mysql.entity.TechnologyEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import java.util.Locale;
+
+// Convierte entre el modelo de dominio y la entidad de infraestructura.
+@Mapper(componentModel = "spring")
+public interface TechnologyEntityMapper {
+
+    @Mapping(target = "normalizedName", expression = "java(normalizeName(technology.getName()))")
+    TechnologyEntity toEntity(Technology technology);
+
+    default Technology toDomain(TechnologyEntity entity) {
+        return Technology.rehydrate(entity.getId(), entity.getName(), entity.getDescription());
+    }
+
+    // Normaliza el nombre para validaciones de unicidad.
+    default String normalizeName(String name) {
+        return name.toLowerCase(Locale.ROOT);
+    }
+}
