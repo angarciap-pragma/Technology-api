@@ -10,5 +10,7 @@ public interface TechnologyRepositoryPort {
     // Consulta si ya existe una tecnologia con el nombre normalizado.
     Mono<Boolean> existsByNormalizedName(String normalizedName);
 
-}
+    // Busca una tecnologia por id.
+    Mono<Technology> findById(Long id);
 
+}

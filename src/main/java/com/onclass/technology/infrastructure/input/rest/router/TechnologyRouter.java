@@ -7,6 +7,7 @@ import com.onclass.technology.infrastructure.input.rest.dto.response.TechnologyR
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
@@ -17,6 +18,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 
 // Configura rutas funcionales WebFlux del modulo de tecnologias.
@@ -50,11 +52,42 @@ public class TechnologyRouter {
                                     )
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = TechnologyRoutes.BASE_PATH + "/{id}",
+                    method = RequestMethod.GET,
+                    operation = @Operation(
+                            operationId = "findTechnologyById",
+                            summary = "Get technology by id",
+                            description = "Returns a technology by id",
+                            parameters = {
+                                    @Parameter(name = "id", description = "Technology id")
+                            },
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "Technology found",
+                                            content = @Content(schema = @Schema(implementation = TechnologyResponse.class))
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Invalid id",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "404",
+                                            description = "Technology not found",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                                    )
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> technologyRoutes(TechnologyHandler technologyHandler) {
         return RouterFunctions
                 .route(POST(TechnologyRoutes.BASE_PATH),
-                 technologyHandler::createTechnology);
+                        technologyHandler::createTechnology)
+                .andRoute(GET(TechnologyRoutes.BASE_PATH + "/{id}"),
+                        technologyHandler::findTechnologyById);
     }
 }

@@ -1,8 +1,10 @@
 package com.onclass.technology.infrastructure.config;
 
 import com.onclass.technology.domain.usecase.CreateTechnologyUseCase;
+import com.onclass.technology.domain.usecase.FindTechnologyByIdUseCase;
 import com.onclass.technology.domain.port.TechnologyRepositoryPort;
 import com.onclass.technology.application.service.CreateCreateTechnologyService;
+import com.onclass.technology.application.service.FindTechnologyByIdService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,5 +18,9 @@ public class UseCaseConfig {
         // Retorna una instancia del caso de uso principal.
         return new CreateCreateTechnologyService(technologyRepositoryPort);
     }
-}
 
+    @Bean
+    public FindTechnologyByIdUseCase findTechnologyByIdUseCase(TechnologyRepositoryPort technologyRepositoryPort) {
+        return new FindTechnologyByIdService(technologyRepositoryPort);
+    }
+}

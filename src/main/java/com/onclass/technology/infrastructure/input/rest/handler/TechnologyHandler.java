@@ -1,6 +1,7 @@
 package com.onclass.technology.infrastructure.input.rest.handler;
 
 import com.onclass.technology.domain.usecase.CreateTechnologyUseCase;
+import com.onclass.technology.domain.usecase.FindTechnologyByIdUseCase;
 import com.onclass.technology.domain.exception.ValidationException;
 import com.onclass.technology.infrastructure.input.rest.dto.request.CreateTechnologyRequest;
 import com.onclass.technology.infrastructure.input.rest.mapper.TechnologyRestMapper;
@@ -22,6 +23,7 @@ import java.util.Set;
 public class TechnologyHandler {
 
     private final CreateTechnologyUseCase createTechnologyUseCase;
+    private final FindTechnologyByIdUseCase findTechnologyByIdUseCase;
     private final TechnologyRestMapper technologyRestMapper;
     private final Validator validator;
 
@@ -40,6 +42,16 @@ public class TechnologyHandler {
                         .bodyValue(response));
     }
 
+    // Obtiene una tecnologia por id.
+    public Mono<ServerResponse> findTechnologyById(ServerRequest request) {
+        Long technologyId = parseTechnologyId(request.pathVariable("id"));
+        return findTechnologyByIdUseCase.findById(technologyId)
+                .map(technologyRestMapper::toResponse)
+                .flatMap(response -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(response));
+    }
+
     // Ejecuta validaciones de bean validation sobre el request.
     private Mono<CreateTechnologyRequest> validateRequest(CreateTechnologyRequest request) {
         Set<ConstraintViolation<CreateTechnologyRequest>> violations = validator.validate(request);
@@ -48,5 +60,13 @@ public class TechnologyHandler {
         }
         String message = violations.iterator().next().getMessage();
         return Mono.error(new ValidationException(message));
+    }
+
+    private Long parseTechnologyId(String id) {
+        try {
+            return Long.parseLong(id);
+        } catch (NumberFormatException exception) {
+            throw new ValidationException("Technology id must be numeric");
+        }
     }
 }

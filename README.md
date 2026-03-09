@@ -42,6 +42,12 @@ El proyecto sigue enfoque de puertos y adaptadores:
 - **Ruta:** `/api/v1/technologies`
 - **HTTP success:** `201 Created`
 
+### Obtener tecnologia por id (soporte HU3 capability-api)
+
+- **Metodo:** `GET`
+- **Ruta:** `/api/v1/technologies/{id}`
+- **HTTP success:** `200 OK`
+
 #### Request
 
 ```json

@@ -38,4 +38,10 @@ public class TechnologyRepositoryAdapter implements TechnologyRepositoryPort {
                 .map(technologyEntityMapper::toDomain)
                 .doOnSuccess(saved -> log.info("Technology persisted with id={}", saved.getId()));
     }
+
+    @Override
+    public Mono<Technology> findById(Long id) {
+        return technologyReactiveRepository.findById(id)
+                .map(technologyEntityMapper::toDomain);
+    }
 }
