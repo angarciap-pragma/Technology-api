@@ -1,6 +1,7 @@
 package com.onclass.technology.infrastructure.input.rest.handler;
 
 import com.onclass.technology.domain.usecase.CreateTechnologyUseCase;
+import com.onclass.technology.domain.usecase.DeleteTechnologyUseCase;
 import com.onclass.technology.domain.usecase.FindTechnologyByIdUseCase;
 import com.onclass.technology.domain.exception.ValidationException;
 import com.onclass.technology.infrastructure.input.rest.dto.request.CreateTechnologyRequest;
@@ -23,6 +24,7 @@ import java.util.Set;
 public class TechnologyHandler {
 
     private final CreateTechnologyUseCase createTechnologyUseCase;
+    private final DeleteTechnologyUseCase deleteTechnologyUseCase;
     private final FindTechnologyByIdUseCase findTechnologyByIdUseCase;
     private final TechnologyRestMapper technologyRestMapper;
     private final Validator validator;
@@ -55,6 +57,16 @@ public class TechnologyHandler {
                 .flatMap(response -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(response));
+    }
+
+    // Elimina una tecnologia por id.
+    public Mono<ServerResponse> deleteTechnologyById(ServerRequest request) {
+        Long technologyId = parseTechnologyId(request.pathVariable("id"));
+        log.info("HTTP DELETE {} - deleting technology by id={}", request.path(), technologyId);
+        return deleteTechnologyUseCase.deleteById(technologyId)
+                .doOnSuccess(unused -> log.info("Technology deletion completed id={}", technologyId))
+                .doOnError(error -> log.error("Error deleting technology by id={}: {}", technologyId, error.getMessage()))
+                .then(ServerResponse.noContent().build());
     }
 
     // Ejecuta validaciones de bean validation sobre el request.

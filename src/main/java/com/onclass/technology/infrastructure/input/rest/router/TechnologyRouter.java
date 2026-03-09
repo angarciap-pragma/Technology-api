@@ -20,6 +20,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 
@@ -88,6 +89,34 @@ public class TechnologyRouter {
                                     )
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = TechnologyRoutes.BASE_PATH + "/{id}",
+                    method = RequestMethod.DELETE,
+                    operation = @Operation(
+                            operationId = "deleteTechnologyById",
+                            summary = "Delete technology by id",
+                            description = "Deletes a technology by id",
+                            parameters = {
+                                    @Parameter(name = "id", description = "Technology id")
+                            },
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "204",
+                                            description = "Technology deleted"
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Invalid id",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "404",
+                                            description = "Technology not found",
+                                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                                    )
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> technologyRoutes(TechnologyHandler technologyHandler) {
@@ -95,6 +124,8 @@ public class TechnologyRouter {
                 .route(POST(TechnologyRoutes.BASE_PATH),
                         technologyHandler::createTechnology)
                 .andRoute(GET(TechnologyRoutes.BASE_PATH + "/{id}"),
-                        technologyHandler::findTechnologyById);
+                        technologyHandler::findTechnologyById)
+                .andRoute(DELETE(TechnologyRoutes.BASE_PATH + "/{id}"),
+                        technologyHandler::deleteTechnologyById);
     }
 }

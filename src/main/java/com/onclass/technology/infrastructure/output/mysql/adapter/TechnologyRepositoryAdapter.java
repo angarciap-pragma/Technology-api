@@ -44,4 +44,14 @@ public class TechnologyRepositoryAdapter implements TechnologyRepositoryPort {
         return technologyReactiveRepository.findById(id)
                 .map(technologyEntityMapper::toDomain);
     }
+
+    @Override
+    public Mono<Boolean> existsById(Long id) {
+        return technologyReactiveRepository.existsById(id);
+    }
+
+    @Override
+    public Mono<Void> deleteById(Long id) {
+        return technologyReactiveRepository.deleteById(id);
+    }
 }

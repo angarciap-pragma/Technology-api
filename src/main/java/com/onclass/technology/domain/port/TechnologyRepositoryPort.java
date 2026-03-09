@@ -13,4 +13,10 @@ public interface TechnologyRepositoryPort {
     // Busca una tecnologia por id.
     Mono<Technology> findById(Long id);
 
+    // Indica si existe una tecnologia por id.
+    Mono<Boolean> existsById(Long id);
+
+    // Elimina una tecnologia por id.
+    Mono<Void> deleteById(Long id);
+
 }
