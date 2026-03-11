@@ -7,16 +7,12 @@ public interface TechnologyRepositoryPort {
 
     Mono<Technology> save(Technology technology);
 
-    // Consulta si ya existe una tecnologia con el nombre normalizado.
     Mono<Boolean> existsByNormalizedName(String normalizedName);
 
-    // Busca una tecnologia por id.
     Mono<Technology> findById(Long id);
 
-    // Indica si existe una tecnologia por id.
     Mono<Boolean> existsById(Long id);
 
-    // Elimina una tecnologia por id.
     Mono<Void> deleteById(Long id);
 
 }

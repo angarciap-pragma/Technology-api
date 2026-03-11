@@ -7,15 +7,16 @@ import org.mapstruct.Mapping;
 
 import java.util.Locale;
 
-// Convierte entre el modelo de dominio y la entidad de infraestructura.
+/** Convierte entre el modelo de dominio y la entidad de infraestructura. Usa liberia mapStructure**/
+
 @Mapper(componentModel = "spring")
 public interface TechnologyEntityMapper {
 
-    @Mapping(target = "normalizedName", expression = "java(normalizeName(technology.getName()))")
+    @Mapping(target = "normalizedName", expression = "java(normalizeName(technology.getName()))")//le dice a MapStructure como llenar el campo, xq no exiuste en el dominio, solo en db
     TechnologyEntity toEntity(Technology technology);
 
     default Technology toDomain(TechnologyEntity entity) {
-        return Technology.rehydrate(entity.getId(), entity.getName(), entity.getDescription());
+        return Technology.rehydrate(entity.getId(), entity.getName(), entity.getDescription());//usa el factory method del dominio
     }
 
     // Normaliza el nombre para validaciones de unicidad.

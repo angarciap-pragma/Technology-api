@@ -1,6 +1,6 @@
 package com.onclass.technology.domain.usecase;
 
-import com.onclass.technology.application.service.CreateCreateTechnologyService;
+import com.onclass.technology.application.service.CreateTechnologyService;
 import com.onclass.technology.domain.exception.ConflictException;
 import com.onclass.technology.domain.exception.ValidationException;
 import com.onclass.technology.domain.model.Technology;
@@ -27,13 +27,13 @@ class CreateTechnologyServiceTest {
     private TechnologyRepositoryPort technologyRepositoryPort;
 
     // Define la instancia del caso de uso a probar.
-    private CreateCreateTechnologyService createTechnologyService;
+    private CreateTechnologyService createTechnologyService;
 
     // Inicializa el caso de uso antes de cada test.
     @BeforeEach
     void setUp() {
         // Crea el caso de uso con dependencia mockeada.
-        createTechnologyService = new CreateCreateTechnologyService(technologyRepositoryPort);
+        createTechnologyService = new CreateTechnologyService(technologyRepositoryPort);
     }
 
     // Verifica que se registre una tecnologia valida.

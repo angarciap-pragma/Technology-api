@@ -32,18 +32,18 @@ public class TechnologyHandler {
     // Registra una nueva tecnologia aplicando validaciones de entrada y dominio.
     public Mono<ServerResponse> createTechnology(ServerRequest request) {
         log.info("HTTP POST {} - starting technology creation", request.path());
-        return request.bodyToMono(CreateTechnologyRequest.class)
-                .switchIfEmpty(Mono.error(new ValidationException("Technology payload is required")))
-                .flatMap(this::validateRequest)
-                .doOnNext(validRequest -> log.info("Creating technology with name='{}'", validRequest.name()))
-                .map(technologyRestMapper::toDomain)
-                .flatMap(createTechnologyUseCase::createTechnology)
-                .map(technologyRestMapper::toResponse)
-                .doOnNext(response -> log.info("Technology created successfully with id={}", response.id()))
-                .doOnError(error -> log.error("Error creating technology: {}", error.getMessage()))
-                .flatMap(response -> ServerResponse.status(201)
+        return request.bodyToMono(CreateTechnologyRequest.class)//convierte body json a objeto
+                .switchIfEmpty(Mono.error(new ValidationException("Payload is required")))
+                .doOnNext(this::validateRequest)//ejecuta validaciones
+                .doOnNext(validRequest -> log.info("Creating technology with name='{}'", validRequest.name()))//solo ejecuta efectos secundarios
+                .map(technologyRestMapper::toDomain)//convierte rest a dominio, se usa map porque no devuelve mono
+                .flatMap(createTechnologyUseCase::createTechnology)//ejecuta caso de uso, devuelve mono
+                .map(technologyRestMapper::toResponse)//convierte dominio a response, .map no devuelve mono
+                .doOnNext(response -> log.info("Technology created successfully with id={}", response.id()))//logs
+                .flatMap(response -> ServerResponse.status(201)//construye respuesta http
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(response));
+                        .bodyValue(response)
+                ).doOnError(error -> log.error("Error creating technology: {}", error.getMessage()));
     }
 
     // Obtiene una tecnologia por id.
@@ -69,14 +69,13 @@ public class TechnologyHandler {
                 .then(ServerResponse.noContent().build());
     }
 
-    // Ejecuta validaciones de bean validation sobre el request.
-    private Mono<CreateTechnologyRequest> validateRequest(CreateTechnologyRequest request) {
-        Set<ConstraintViolation<CreateTechnologyRequest>> violations = validator.validate(request);
-        if (violations.isEmpty()) {
-            return Mono.just(request);
+    // Ejecuta validaciones de bean validation sobre el request / xq no se ejecuta el @valid de spring con routerFuntion, handler, ServerRequest
+    private void validateRequest(CreateTechnologyRequest request) {
+        Set<ConstraintViolation<CreateTechnologyRequest>> violations = validator.validate(request); //se usa Bean Validation (Jakarta Validation) //ConstraintViolation contiene todos los errores de validacion del dto
+        if (!violations.isEmpty()) {//si no hay errores/ vacio
+            String message = violations.iterator().next().getMessage();//si hay errores,se toma el primer error
+            throw new ValidationException(message);//Captura el error
         }
-        String message = violations.iterator().next().getMessage();
-        return Mono.error(new ValidationException(message));
     }
 
     private Long parseTechnologyId(String id) {
@@ -87,3 +86,22 @@ public class TechnologyHandler {
         }
     }
 }
+
+/*
+✔ no bloquea hilos
+✔ soporta muchas peticiones
+✔ mejor escalabilidad
+✔ en lugar de thread por request, usa event loop + async
+ Mono pipeline=request - map(mapear) - flapMap(validar) - map(guardar) - response
+ map → transforma objeto
+ flatMap → llama algo que devuelve Mono
+ doOnNext → efecto secundario (log)
+ switchIfEmpty → manejo de vacío
+
+ operadores mas importantes
+ map - solo cuando se transforma a objeto, no hay operaciones asincronicas - transforma datos
+ flapMap - cuando la funcion devuelve mono o flux - llama operacion async
+ concatMap - similar al flapMap pero ejecuta en orden uno*uno - garantiza orden
+ flapMap con concurrencia - puede ejcutar en paralelo
+ switchMap - Cancela el flujo anterior y usa solo el último.
+ */

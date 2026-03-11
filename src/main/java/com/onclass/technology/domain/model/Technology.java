@@ -2,8 +2,12 @@ package com.onclass.technology.domain.model;
 
 import com.onclass.technology.domain.exception.ValidationException;
 import lombok.Getter;
+import lombok.ToString;
+
+import java.util.Locale;
 
 @Getter
+@ToString
 public class Technology {
 
     private static final int NAME_MAX_LENGTH = 50;
@@ -15,48 +19,49 @@ public class Technology {
 
     private Technology(Long id, String name, String description) {
         this.id = id;
-        this.name = validateName(name);
-        this.description = validateDescription(description);
+        this.name = validate(name, "name", NAME_MAX_LENGTH);
+        this.description = validate(description, "description", DESCRIPTION_MAX_LENGTH);
     }
 
-    // Factory para crear una nueva tecnologia
+    /**
+     * Factory method to create a new technology.
+     */
     public static Technology create(String name, String description) {
         return new Technology(null, name, description);
     }
 
-    // Factory para reconstruir desde base de datos
+    /**
+     * Factory method to reconstruct a technology from persistence.
+     */
     public static Technology rehydrate(Long id, String name, String description) {
         if (id == null) {
-            throw new ValidationException("Technology id is required");
+            throw new ValidationException("id is required");
         }
         return new Technology(id, name, description);
     }
 
-    private static String validateName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new ValidationException("Technology name is required");
+    /**
+     * Generic validation used by domain invariants.
+     */
+    private static String validate(String value, String field, int maxLength) {
+
+        if (value == null || value.trim().isEmpty()) {
+            throw new ValidationException(field + " is required");
         }
 
-        String value = name.trim();
+        String sanitized = value.trim();
 
-        if (value.length() > NAME_MAX_LENGTH) {
-            throw new ValidationException("Technology name exceeds 50 characters");
+        if (sanitized.length() > maxLength) {
+            throw new ValidationException(field + " exceeds " + maxLength + " characters");
         }
 
-        return value;
+        return sanitized;
     }
 
-    private static String validateDescription(String description) {
-        if (description == null || description.trim().isEmpty()) {
-            throw new ValidationException("Technology description is required");
-        }
-
-        String value = description.trim();
-
-        if (value.length() > DESCRIPTION_MAX_LENGTH) {
-            throw new ValidationException("Technology description exceeds 90 characters");
-        }
-
-        return value;
+    /**
+     * Returns a normalized name used for uniqueness checks.
+     */
+    public String normalizedName() {
+        return name.toLowerCase(Locale.ROOT);
     }
 }

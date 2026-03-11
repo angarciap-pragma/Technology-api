@@ -24,7 +24,6 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 
-// Configura rutas funcionales WebFlux del modulo de tecnologias.
 @Configuration
 public class TechnologyRouter {
 

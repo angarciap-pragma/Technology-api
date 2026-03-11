@@ -1,120 +1,97 @@
 package com.onclass.technology.infrastructure.input.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onclass.technology.domain.exception.ConflictException;
 import com.onclass.technology.domain.exception.ErrorCode;
 import com.onclass.technology.domain.exception.NotFoundException;
 import com.onclass.technology.domain.exception.ValidationException;
 import com.onclass.technology.infrastructure.input.rest.dto.response.ErrorResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.support.WebExchangeBindException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 
-// Centraliza el manejo de excepciones para respuestas de error uniformes.
-@RestControllerAdvice
+/**
+ * Maneja errores globales para WebFlux funcional.
+ */
+@Component
 @Slf4j
-public class GlobalExceptionHandler {
+@RequiredArgsConstructor
+public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 
-    // Maneja errores de validacion funcional del dominio.
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
-            ValidationException exception,
-            ServerWebExchange exchange
-    ) {
-        log.warn("Validation error on path='{}': {}", exchange.getRequest().getPath().value(), exception.getMessage());
-        // Crea el cuerpo de error con informacion de trazabilidad.
-        ErrorResponse response = new ErrorResponse(
+    private final ObjectMapper objectMapper;
+
+    @Override
+    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {//exchange tiene contexto htpp request,response,headers,path
+        HttpStatus status;
+        ErrorCode errorCode;
+        String message;
+
+        // Determina tipo de excepción usando switch pattern matching (Java 21) / reemplaza if else
+        switch (ex) {
+
+            case ValidationException validationException -> {
+                status = HttpStatus.BAD_REQUEST;
+                errorCode = validationException.getErrorCode();
+                message = validationException.getMessage();
+            }
+
+            case ConflictException conflictException -> {
+                status = HttpStatus.CONFLICT;
+                errorCode = conflictException.getErrorCode();
+                message = conflictException.getMessage();
+            }
+
+            case NotFoundException notFoundException -> {
+                status = HttpStatus.NOT_FOUND;
+                errorCode = notFoundException.getErrorCode();
+                message = notFoundException.getMessage();
+            }
+
+            default -> {
+                status = HttpStatus.INTERNAL_SERVER_ERROR;
+                errorCode = ErrorCode.INTERNAL_ERROR;
+                message = "Unexpected server error";
+            }
+        }
+        log.warn("Error on path='{}': {}", exchange.getRequest().getPath().value(), message);
+
+        ErrorResponse errorResponse = new ErrorResponse(
                 Instant.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                exception.getErrorCode().name(),
-                exception.getMessage(),
-                exchange.getRequest().getPath().value()
-        );
-        // Retorna la respuesta con status 400.
-        return ResponseEntity.badRequest().body(response);
-    }
-
-    // Maneja errores cuando el nombre de tecnologia ya existe.
-    @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<ErrorResponse> handleConflictException(
-            ConflictException exception,
-            ServerWebExchange exchange
-    ) {
-        log.warn("Conflict error on path='{}': {}", exchange.getRequest().getPath().value(), exception.getMessage());
-        // Crea el cuerpo de error para conflicto de unicidad.
-        ErrorResponse response = new ErrorResponse(
-                Instant.now(),
-                HttpStatus.CONFLICT.value(),
-                exception.getErrorCode().name(),
-                exception.getMessage(),
-                exchange.getRequest().getPath().value()
-        );
-        // Retorna la respuesta con status 409.
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-    }
-
-    // Maneja conflictos de unicidad disparados directamente desde la base de datos.
-    @ExceptionHandler({DuplicateKeyException.class, DataIntegrityViolationException.class})
-    public ResponseEntity<ErrorResponse> handleDataIntegrityConflict(
-            RuntimeException exception,
-            ServerWebExchange exchange
-    ) {
-        log.warn("Data integrity conflict on path='{}': {}", exchange.getRequest().getPath().value(), exception.getMessage());
-        ErrorResponse response = new ErrorResponse(
-                Instant.now(),
-                HttpStatus.CONFLICT.value(),
-                ErrorCode.CONFLICT_ERROR.name(),
-                "Technology name already exists",
-                exchange.getRequest().getPath().value()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-    }
-
-    // Maneja errores cuando un recurso no existe.
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFoundException(
-            NotFoundException exception,
-            ServerWebExchange exchange
-    ) {
-        log.warn("Not found error on path='{}': {}", exchange.getRequest().getPath().value(), exception.getMessage());
-        ErrorResponse response = new ErrorResponse(
-                Instant.now(),
-                HttpStatus.NOT_FOUND.value(),
-                exception.getErrorCode().name(),
-                exception.getMessage(),
-                exchange.getRequest().getPath().value()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-
-    // Maneja errores de validacion de anotaciones del request HTTP.
-    @ExceptionHandler(WebExchangeBindException.class)
-    public ResponseEntity<ErrorResponse> handleWebExchangeBindException(
-            WebExchangeBindException exception,
-            ServerWebExchange exchange
-    ) {
-        // Obtiene el primer mensaje de validacion o usa mensaje generico.
-        String message = exception.getFieldErrors().isEmpty()
-                ? "Invalid request payload"
-                : exception.getFieldErrors().get(0).getDefaultMessage();
-        log.warn("Request payload validation error on path='{}': {}", exchange.getRequest().getPath().value(), message);
-
-        // Crea el cuerpo de error para payload invalido.
-        ErrorResponse response = new ErrorResponse(
-                Instant.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                ErrorCode.INVALID_REQUEST_PAYLOAD.name(),
+                status.value(),
+                errorCode.name(),
                 message,
                 exchange.getRequest().getPath().value()
         );
-        // Retorna la respuesta con status 400.
-        return ResponseEntity.badRequest().body(response);
+
+        exchange.getResponse().setStatusCode(status);//define status del response
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);//define que el reponse es json
+
+        return Mono.fromCallable(() -> objectMapper.writeValueAsBytes(errorResponse))
+                .map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
+                .flatMap(buffer -> exchange.getResponse().writeWith(Mono.just(buffer)))
+                .onErrorResume(error -> {
+                    log.error("Error serializing error response", error);
+                    return exchange.getResponse().setComplete();
+                });
     }
+
 }
+
+
+/*
+    Void porque no devolvemos un objeto Java, sino que escribimos directamente la respuesta HTTP.
+    Throwable ex - captura el tipo de excepcion
+   Mono.fromCallable(...) Esto crea un Mono que ejecuta una operación que puede lanzar error - evitra el try catch
+   luego onErrorResume
+   map → transformo datos
+flatMap → llamo algo que devuelve Mono
+onErrorResume → manejo error reactivo
+fromCallable → ejecuto algo que puede lanzar excepción
+*/

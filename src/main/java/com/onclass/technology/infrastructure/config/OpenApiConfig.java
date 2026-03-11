@@ -5,7 +5,11 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.context.annotation.Configuration;
 
-// Declara metadatos OpenAPI del microservicio.
+
+/**
+ * Configuración de OpenAPI que define los metadatos del microservicio
+ * para la generación automática de documentación Swagger.
+ */
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
@@ -16,6 +20,6 @@ import org.springframework.context.annotation.Configuration;
         )
 )
 public class OpenApiConfig {
-    // Clase de configuracion sin comportamiento adicional.
+        // Clase de configuración utilizada únicamente para definir metadatos OpenAPI.
 }
 

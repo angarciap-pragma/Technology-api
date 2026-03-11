@@ -11,7 +11,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.Locale;
 
-// Implementa el puerto de persistencia del dominio usando MySQL reactivo.
+/**
+ * Implementa el puerto de persistencia del dominio usando MySQL reactivo.
+ **/
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -20,23 +23,17 @@ public class TechnologyRepositoryAdapter implements TechnologyRepositoryPort {
     private final TechnologyReactiveRepository technologyReactiveRepository;
     private final TechnologyEntityMapper technologyEntityMapper;
 
-    // Consulta si existe una tecnologia con ese nombre normalizado.
     @Override
     public Mono<Boolean> existsByNormalizedName(String normalizedName) {
         log.debug("Checking technology existence by normalizedName='{}'", normalizedName);
-        // Ejecuta consulta reactiva asegurando formato normalizado.
-        return technologyReactiveRepository.existsByNormalizedName(normalizedName.toLowerCase(Locale.ROOT));
+        return technologyReactiveRepository.existsByNormalizedName(normalizedName);// Ejecuta consulta reactiva asegurando formato normalizado.
     }
 
-    // Persiste una tecnologia en la base de datos.
     @Override
     public Mono<Technology> save(Technology technology) {
-        log.debug("Persisting technology with name='{}'", technology.getName());
-        // Convierte el dominio a entidad para repositorio.
-        return technologyReactiveRepository.save(technologyEntityMapper.toEntity(technology))
-                // Convierte la entidad guardada de vuelta al dominio.
-                .map(technologyEntityMapper::toDomain)
-                .doOnSuccess(saved -> log.info("Technology persisted with id={}", saved.getId()));
+        return technologyReactiveRepository.save(technologyEntityMapper.toEntity(technology))// Convierte el dominio a entidad para repositorio.
+                .map(technologyEntityMapper::toDomain)// Convierte la entidad guardada de vuelta al dominiO / entra un objeto, sale otro, .map no devuelve mono
+                .doOnSuccess(saved -> log.info("Technology persisted = {}", saved));
     }
 
     @Override
