@@ -88,20 +88,20 @@ public class TechnologyHandler {
 }
 
 /*
-✔ no bloquea hilos
-✔ soporta muchas peticiones
-✔ mejor escalabilidad
-✔ en lugar de thread por request, usa event loop + async
+âœ” no bloquea hilos
+âœ” soporta muchas peticiones
+âœ” mejor escalabilidad
+âœ” en lugar de thread por request, usa event loop + async
  Mono pipeline=request - map(mapear) - flapMap(validar) - map(guardar) - response
- map → transforma objeto
- flatMap → llama algo que devuelve Mono
- doOnNext → efecto secundario (log)
- switchIfEmpty → manejo de vacío
+ map â†’ transforma objeto
+ flatMap â†’ llama algo que devuelve Mono
+ doOnNext â†’ efecto secundario (log)
+ switchIfEmpty â†’ manejo de vacÃ­o
 
  operadores mas importantes
  map - solo cuando se transforma a objeto, no hay operaciones asincronicas - transforma datos
  flapMap - cuando la funcion devuelve mono o flux - llama operacion async
  concatMap - similar al flapMap pero ejecuta en orden uno*uno - garantiza orden
  flapMap con concurrencia - puede ejcutar en paralelo
- switchMap - Cancela el flujo anterior y usa solo el último.
+ switchMap - Cancela el flujo anterior y usa solo el Ãºltimo.
  */

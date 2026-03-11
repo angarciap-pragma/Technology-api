@@ -10,12 +10,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class TechnologyTest {
 
     @Test
-    void createShouldTrimValues() {
+    void createShouldKeepOriginalValues() {
         Technology technology = Technology.create("  Java  ", "  Backend language  ");
 
-        assertEquals("Java", technology.getName());
-        assertEquals("Backend language", technology.getDescription());
+        assertEquals("  Java  ", technology.getName());
+        assertEquals("  Backend language  ", technology.getDescription());
         assertEquals(null, technology.getId());
+    }
+
+    @Test
+    void normalizedNameShouldTrimCollapseSpacesAndLowercase() {
+        Technology technology = Technology.create("  JaVa   Script   ", "Runtime");
+
+        assertEquals("java script", technology.normalizedName());
     }
 
     @Test

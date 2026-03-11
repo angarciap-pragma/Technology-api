@@ -24,8 +24,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.5'
 	implementation 'org.mapstruct:mapstruct:1.6.3' //mapeo entre capas
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'// Health checks y métricas
-	compileOnly 'org.projectlombok:lombok' //logs y reducción de boilerplate.
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'// Health checks y mÃ©tricas
+	compileOnly 'org.projectlombok:lombok' //logs y reducciÃ³n de boilerplate.
 	compileOnly 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 	annotationProcessor 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'

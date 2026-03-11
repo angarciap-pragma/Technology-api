@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 
 
 /**
- * Configuración de OpenAPI que define los metadatos del microservicio
- * para la generación automática de documentación Swagger.
+ * ConfiguraciÃ³n de OpenAPI que define los metadatos del microservicio
+ * para la generaciÃ³n automÃ¡tica de documentaciÃ³n Swagger.
  */
 @Configuration
 @OpenAPIDefinition(
@@ -20,6 +20,6 @@ import org.springframework.context.annotation.Configuration;
         )
 )
 public class OpenApiConfig {
-        // Clase de configuración utilizada únicamente para definir metadatos OpenAPI.
+        // Clase de configuraciÃ³n utilizada Ãºnicamente para definir metadatos OpenAPI.
 }
 

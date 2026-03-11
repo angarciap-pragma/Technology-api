@@ -12,6 +12,8 @@ import java.util.Locale;
 @Mapper(componentModel = "spring")
 public interface TechnologyEntityMapper {
 
+    @Mapping(target = "name", expression = "java(technology.getName())")
+    @Mapping(target = "description", expression = "java(technology.getDescription())")
     @Mapping(target = "normalizedName", expression = "java(normalizeName(technology.getName()))")//le dice a MapStructure como llenar el campo, xq no existe en el dominio, solo en db
     TechnologyEntity toEntity(Technology technology);
 
@@ -21,6 +23,8 @@ public interface TechnologyEntityMapper {
 
     // Normaliza el nombre para validaciones de unicidad.
     default String normalizeName(String name) {
-        return name.toLowerCase(Locale.ROOT);
+        return name.trim()
+                .replaceAll("\\s+", " ")
+                .toLowerCase(Locale.ROOT);
     }
 }

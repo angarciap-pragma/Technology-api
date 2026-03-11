@@ -19,8 +19,8 @@ public class CreateTechnologyService implements CreateTechnologyUseCase {
             return technologyRepositoryPort.existsByNormalizedName(technology.normalizedName())//Hace una consulta reactiva al repositorio, para nombre normalizado
                     .filter(Boolean.TRUE::equals)// si exists = true pasa el filtro
                     .doOnNext(exist -> log.warn("Duplicated technology name '{}'", technology.getName()))
-                    .flatMap(exists -> Mono.<Technology>error(new ConflictException("Technology name already exists")))// si pasó el filtro (ya existe), lanzar error
-                    .switchIfEmpty(// si no pasó el filtro (exists=false), se ejecuta el save
+                    .flatMap(exists -> Mono.<Technology>error(new ConflictException("Technology name already exists")))// si pasÃ³ el filtro (ya existe), lanzar error
+                    .switchIfEmpty(// si no pasÃ³ el filtro (exists=false), se ejecuta el save
                             technologyRepositoryPort.save(technology)
                                     .doOnSuccess(saved ->
                                             log.info("Technology persisted successfully with name={}", saved.getName())
@@ -31,8 +31,8 @@ public class CreateTechnologyService implements CreateTechnologyUseCase {
 }
 
 /*
- * filter	deja pasar solo los valores que cumplen condición
+ * filter	deja pasar solo los valores que cumplen condiciÃ³n
  * flatMap	transforma el flujo en otro Mono
- * switchIfEmpty	ejecuta lógica cuando el flujo queda vacío
+ * switchIfEmpty	ejecuta lÃ³gica cuando el flujo queda vacÃ­o
  * doOnSuccess	ejecuta efecto secundario (log)
 */

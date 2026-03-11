@@ -55,13 +55,16 @@ public class Technology {
             throw new ValidationException(field + " exceeds " + maxLength + " characters");
         }
 
-        return sanitized;
+        // Conserva el valor tal cual llega para persistir name/description sin transformacion.
+        return value;
     }
 
     /**
      * Returns a normalized name used for uniqueness checks.
      */
     public String normalizedName() {
-        return name.toLowerCase(Locale.ROOT);
+        return name.trim()
+                .replaceAll("\\s+", " ")
+                .toLowerCase(Locale.ROOT);
     }
 }
