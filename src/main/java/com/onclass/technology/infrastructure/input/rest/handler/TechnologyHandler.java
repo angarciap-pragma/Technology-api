@@ -34,7 +34,6 @@ public class TechnologyHandler {
         log.info("HTTP POST {} - starting technology creation", request.path());
         return request.bodyToMono(CreateTechnologyRequest.class)//convierte body json a objeto
                 .switchIfEmpty(Mono.error(new ValidationException("Payload is required")))
-                .doOnNext(this::validateRequest)//ejecuta validaciones
                 .doOnNext(validRequest -> log.info("Creating technology with name='{}'", validRequest.name()))//solo ejecuta efectos secundarios
                 .map(technologyRestMapper::toDomain)//convierte rest a dominio, se usa map porque no devuelve mono
                 .flatMap(createTechnologyUseCase::createTechnology)//ejecuta caso de uso, devuelve mono
@@ -67,15 +66,6 @@ public class TechnologyHandler {
                 .doOnSuccess(unused -> log.info("Technology deletion completed id={}", technologyId))
                 .doOnError(error -> log.error("Error deleting technology by id={}: {}", technologyId, error.getMessage()))
                 .then(ServerResponse.noContent().build());
-    }
-
-    // Ejecuta validaciones de bean validation sobre el request / xq no se ejecuta el @valid de spring con routerFuntion, handler, ServerRequest
-    private void validateRequest(CreateTechnologyRequest request) {
-        Set<ConstraintViolation<CreateTechnologyRequest>> violations = validator.validate(request); //se usa Bean Validation (Jakarta Validation) //ConstraintViolation contiene todos los errores de validacion del dto
-        if (!violations.isEmpty()) {//si no hay errores/ vacio
-            String message = violations.iterator().next().getMessage();//si hay errores,se toma el primer error
-            throw new ValidationException(message);//Captura el error
-        }
     }
 
     private Long parseTechnologyId(String id) {
