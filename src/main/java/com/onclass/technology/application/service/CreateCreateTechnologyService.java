@@ -46,7 +46,6 @@ public class CreateCreateTechnologyService implements CreateTechnologyUseCase {
 
     // Normaliza el nombre para aplicar unicidad sin depender de formato.
     private String normalizeName(String name) {
-        // Convierte el nombre a minusculas usando locale estable.
         return name.toLowerCase(Locale.ROOT);
     }
 }

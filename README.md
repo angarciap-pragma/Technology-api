@@ -8,6 +8,14 @@ Microservicio para registrar tecnologias objetivo de los bootcamps.
 **Necesito** registrar las tecnologias que seran usadas proximamente por las capacidades  
 **Para** saber a que tecnologias le apunta el bootcamp y agrupar mejor las capacidades.
 
+## Historia de Usuario 3
+
+**Como** consumidor de la API de capacidades  
+**Necesito** consultar una tecnologia por su identificador  
+**Para** reutilizar su informacion desde otros modulos.
+
+Estado: implementada como `FindTechnologyById`.
+
 ## Reglas de negocio
 
 1. Cada tecnologia tiene 3 campos: `id`, `name`, `description`.
@@ -34,19 +42,13 @@ El proyecto sigue enfoque de puertos y adaptadores:
 - `infrastructure/input/rest`: controlador REST y manejo de errores.
 - `infrastructure/output/mysql`: persistencia en MySQL.
 
-## Endpoint HU1
+## Endpoints implementados
 
-### Crear tecnologia
+### HU1 - Crear tecnologia
 
 - **Metodo:** `POST`
 - **Ruta:** `/api/v1/technologies`
 - **HTTP success:** `201 Created`
-
-### Obtener tecnologia por id (soporte HU3 capability-api)
-
-- **Metodo:** `GET`
-- **Ruta:** `/api/v1/technologies/{id}`
-- **HTTP success:** `200 OK`
 
 #### Request
 
@@ -80,6 +82,38 @@ Ejemplo `409`:
   "status": 409,
   "message": "Technology name already exists",
   "path": "/api/v1/technologies"
+}
+```
+
+### HU3 - FindTechnologyById
+
+- **Metodo:** `GET`
+- **Ruta:** `/api/v1/technologies/{id}`
+- **HTTP success:** `200 OK`
+
+#### Response (200)
+
+```json
+{
+  "id": 1,
+  "name": "Java",
+  "description": "Lenguaje para desarrollo backend"
+}
+```
+
+#### Errores
+
+- `400 Bad Request`: el `id` es invalido, por ejemplo `0` o negativo.
+- `404 Not Found`: no existe una tecnologia con el `id` consultado.
+
+Ejemplo `404`:
+
+```json
+{
+  "timestamp": "2026-03-11T10:20:11.328Z",
+  "status": 404,
+  "message": "Technology not found",
+  "path": "/api/v1/technologies/99"
 }
 ```
 
