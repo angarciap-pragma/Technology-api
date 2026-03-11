@@ -17,15 +17,12 @@ public class FindTechnologyByIdService implements FindTechnologyByIdUseCase {
 
     @Override
     public Mono<Technology> findById(Long id) {
-        return Mono.defer(() -> {
-            log.debug("Starting findTechnologyById in application layer for id={}", id);
-            if (id == null || id <= 0) {
-                throw new ValidationException("Technology id must be greater than 0");
-            }
+        if (id == null || id <= 0) {
+            return Mono.error(new ValidationException("Technology id must be greater than 0"));
+        }
 
-            return technologyRepositoryPort.findById(id)
-                    .doOnNext(technology -> log.info("Technology loaded from repository id={}", technology.getId()))
-                    .switchIfEmpty(Mono.error(new NotFoundException("Technology not found")));
-        });
+        return technologyRepositoryPort.findById(id)
+                .doOnNext(technology -> log.info("Technology loaded id={}", technology.getId()))
+                .switchIfEmpty(Mono.error(new NotFoundException("Technology not found")));
     }
 }

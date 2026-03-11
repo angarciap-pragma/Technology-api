@@ -18,20 +18,16 @@ public class DeleteTechnologyService implements DeleteTechnologyUseCase {
     @Override
     @Transactional
     public Mono<Void> deleteById(Long id) {
-        return Mono.defer(() -> {
-            log.debug("Starting deleteTechnologyById in application layer for id={}", id);
-            if (id == null || id <= 0) {
-                throw new ValidationException("Technology id must be greater than 0");
-            }
 
-            return technologyRepositoryPort.existsById(id)
-                    .flatMap(exists -> {
-                        if (!exists) {
-                            return Mono.error(new NotFoundException("Technology not found"));
-                        }
-                        return technologyRepositoryPort.deleteById(id)
-                                .doOnSuccess(unused -> log.info("Technology deleted id={}", id));
-                    });
-        });
+        if (id == null || id <= 0) {
+            return Mono.error(new ValidationException("Technology id must be greater than 0"));
+        }
+
+        return technologyRepositoryPort.existsById(id)
+                .filter(Boolean.TRUE::equals)// si exists = true pasa el filtro
+                .doOnNext(exists -> log.warn("Technology not found for deletion id={}", id))
+                .switchIfEmpty(Mono.error(new NotFoundException("Technology not found")))// si no existe, lanzar error
+                .flatMap(exists -> technologyRepositoryPort.deleteById(id))// si existe, ejecutar delete
+                .doOnSuccess(unused -> log.info("Technology deleted id={}", id));
     }
 }

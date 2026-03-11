@@ -12,7 +12,7 @@ import java.util.Locale;
 @Mapper(componentModel = "spring")
 public interface TechnologyEntityMapper {
 
-    @Mapping(target = "normalizedName", expression = "java(normalizeName(technology.getName()))")//le dice a MapStructure como llenar el campo, xq no exiuste en el dominio, solo en db
+    @Mapping(target = "normalizedName", expression = "java(normalizeName(technology.getName()))")//le dice a MapStructure como llenar el campo, xq no existe en el dominio, solo en db
     TechnologyEntity toEntity(Technology technology);
 
     default Technology toDomain(TechnologyEntity entity) {

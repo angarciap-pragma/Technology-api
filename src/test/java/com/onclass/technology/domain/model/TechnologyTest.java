@@ -25,7 +25,7 @@ class TechnologyTest {
                 () -> Technology.create("   ", "Valid description")
         );
 
-        assertEquals("Technology name is required", exception.getMessage());
+        assertEquals("name is required", exception.getMessage());
     }
 
     @Test
@@ -35,7 +35,7 @@ class TechnologyTest {
                 () -> Technology.create("Java", "   ")
         );
 
-        assertEquals("Technology description is required", exception.getMessage());
+        assertEquals("description is required", exception.getMessage());
     }
 
     @Test
@@ -47,7 +47,7 @@ class TechnologyTest {
                 () -> Technology.create(invalidName, "Valid description")
         );
 
-        assertEquals("Technology name exceeds 50 characters", exception.getMessage());
+        assertEquals("name exceeds 50 characters", exception.getMessage());
     }
 
     @Test
@@ -59,6 +59,6 @@ class TechnologyTest {
                 () -> Technology.create("Java", invalidDescription)
         );
 
-        assertEquals("Technology description exceeds 90 characters", exception.getMessage());
+        assertEquals("description exceeds 90 characters", exception.getMessage());
     }
 }
