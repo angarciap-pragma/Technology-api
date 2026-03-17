@@ -24,6 +24,9 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 
+/**
+ * Configura las rutas funcionales y la documentacion OpenAPI del microservicio de tecnologias.
+ */
 @Configuration
 public class TechnologyRouter {
 

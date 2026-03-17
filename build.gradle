@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.3'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
 
 group = 'com.onclass'
@@ -37,6 +38,8 @@ dependencies {
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation 'io.r2dbc:r2dbc-h2'
+	testImplementation 'com.h2database:h2'
 	testCompileOnly 'org.projectlombok:lombok'
 	testCompileOnly 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 	testAnnotationProcessor 'org.projectlombok:lombok'
@@ -47,4 +50,13 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
 }

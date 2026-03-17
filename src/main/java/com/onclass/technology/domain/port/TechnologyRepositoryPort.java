@@ -3,6 +3,9 @@ package com.onclass.technology.domain.port;
 import com.onclass.technology.domain.model.Technology;
 import reactor.core.publisher.Mono;
 
+/**
+ * Define el contrato de persistencia reactiva para el agregado de tecnologias.
+ */
 public interface TechnologyRepositoryPort {
 
     Mono<Technology> save(Technology technology);

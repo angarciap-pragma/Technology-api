@@ -2,6 +2,9 @@ package com.onclass.technology.domain.exception;
 
 import lombok.Getter;
 
+/**
+ * Excepcion base para representar errores controlados del dominio.
+ */
 @Getter
 public abstract class BusinessException extends RuntimeException {
 

@@ -7,6 +7,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+/**
+ * Representa la entidad de infraestructura persistida en la tabla de tecnologias.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

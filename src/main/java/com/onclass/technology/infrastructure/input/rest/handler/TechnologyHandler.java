@@ -1,9 +1,9 @@
 package com.onclass.technology.infrastructure.input.rest.handler;
 
+import com.onclass.technology.domain.exception.ValidationException;
 import com.onclass.technology.domain.usecase.CreateTechnologyUseCase;
 import com.onclass.technology.domain.usecase.DeleteTechnologyUseCase;
 import com.onclass.technology.domain.usecase.FindTechnologyByIdUseCase;
-import com.onclass.technology.domain.exception.ValidationException;
 import com.onclass.technology.infrastructure.input.rest.dto.request.CreateTechnologyRequest;
 import com.onclass.technology.infrastructure.input.rest.mapper.TechnologyRestMapper;
 import jakarta.validation.ConstraintViolation;
@@ -16,8 +16,11 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.Set;
+import java.util.stream.Collectors;
 
+/**
+ * Gestiona las peticiones HTTP reactivas del modulo de tecnologias.
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -32,17 +35,18 @@ public class TechnologyHandler {
     // Registra una nueva tecnologia aplicando validaciones de entrada y dominio.
     public Mono<ServerResponse> createTechnology(ServerRequest request) {
         log.info("HTTP POST {} - starting technology creation", request.path());
-        return request.bodyToMono(CreateTechnologyRequest.class)//convierte body json a objeto
-                .switchIfEmpty(Mono.error(new ValidationException("Payload is required")))
-                .doOnNext(validRequest -> log.info("Creating technology with name='{}'", validRequest.name()))//solo ejecuta efectos secundarios
-                .map(technologyRestMapper::toDomain)//convierte rest a dominio, se usa map porque no devuelve mono
-                .flatMap(createTechnologyUseCase::createTechnology)//ejecuta caso de uso, devuelve mono
-                .map(technologyRestMapper::toResponse)//convierte dominio a response, .map no devuelve mono
-                .doOnNext(response -> log.info("Technology created successfully with id={}", response.id()))//logs
-                .flatMap(response -> ServerResponse.status(201)//construye respuesta http
+        return request.bodyToMono(CreateTechnologyRequest.class) // Lee el cuerpo HTTP y lo convierte a CreateTechnologyRequest.
+                .switchIfEmpty(Mono.error(new ValidationException("Payload is required"))) // Si el cuerpo viene vacio, responde con error de validacion.
+                .doOnNext(this::validateRequest) // Ejecuta validaciones del DTO antes de continuar el flujo.
+                .doOnNext(validRequest -> log.info("Creating technology with name='{}'", validRequest.name()))
+                .map(technologyRestMapper::toDomain) // Convierte el DTO de entrada al modelo de dominio Technology.
+                .flatMap(createTechnologyUseCase::createTechnology) // Ejecuta el caso de uso para crear la tecnologia.
+                .map(technologyRestMapper::toResponse)
+                .doOnNext(response -> log.info("Technology created successfully with id={}", response.id()))
+                .flatMap(response -> ServerResponse.status(201)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(response)
-                ).doOnError(error -> log.error("Error creating technology: {}", error.getMessage()));
+                        .bodyValue(response))
+                .doOnError(error -> log.error("Error creating technology: {}", error.getMessage()));
     }
 
     // Obtiene una tecnologia por id.
@@ -68,30 +72,22 @@ public class TechnologyHandler {
                 .then(ServerResponse.noContent().build());
     }
 
-    private Long parseTechnologyId(String id) {
+    private Long parseTechnologyId(String id) { // Convierte el id del path a un numero Long.
         try {
-            return Long.parseLong(id);
-        } catch (NumberFormatException exception) {
-            throw new ValidationException("Technology id must be numeric");
+            return Long.parseLong(id); // Intenta transformar el texto recibido a Long.
+        } catch (NumberFormatException exception) { // Captura el error si el texto no es numerico.
+            throw new ValidationException("Technology id must be numeric"); // Lanza una excepcion de validacion con mensaje claro.
+        }
+    }
+
+    private void validateRequest(CreateTechnologyRequest request) {
+        var violations = validator.validate(request); // Ejecuta Bean Validation sobre el request y obtiene las reglas incumplidas.
+        if (!violations.isEmpty()) { // Verifica si existe al menos una violación de validación.
+            String message = violations.stream() // Convierte el conjunto de violaciones en un flujo para procesarlo.
+                    .map(ConstraintViolation::getMessage) // Extrae el mensaje de error de cada violación encontrada.
+                    .sorted() // Ordena alfabéticamente los mensajes para que la salida sea consistente.
+                    .collect(Collectors.joining(", ")); // Une todos los mensajes en un solo texto separado por comas.
+            throw new ValidationException(message); // Lanza una excepción de validación con el detalle consolidado.
         }
     }
 }
-
-/*
-âœ” no bloquea hilos
-âœ” soporta muchas peticiones
-âœ” mejor escalabilidad
-âœ” en lugar de thread por request, usa event loop + async
- Mono pipeline=request - map(mapear) - flapMap(validar) - map(guardar) - response
- map â†’ transforma objeto
- flatMap â†’ llama algo que devuelve Mono
- doOnNext â†’ efecto secundario (log)
- switchIfEmpty â†’ manejo de vacÃ­o
-
- operadores mas importantes
- map - solo cuando se transforma a objeto, no hay operaciones asincronicas - transforma datos
- flapMap - cuando la funcion devuelve mono o flux - llama operacion async
- concatMap - similar al flapMap pero ejecuta en orden uno*uno - garantiza orden
- flapMap con concurrencia - puede ejcutar en paralelo
- switchMap - Cancela el flujo anterior y usa solo el Ãºltimo.
- */

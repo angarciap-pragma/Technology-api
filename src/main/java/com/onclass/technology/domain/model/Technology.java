@@ -8,6 +8,9 @@ import java.util.Locale;
 
 @Getter
 @ToString
+/**
+ * Representa la entidad de dominio tecnologia con sus reglas de validacion.
+ */
 public class Technology {
 
     private static final int NAME_MAX_LENGTH = 50;

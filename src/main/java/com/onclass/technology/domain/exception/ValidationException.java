@@ -1,5 +1,8 @@
 package com.onclass.technology.domain.exception;
 
+/**
+ * Representa errores de validacion de formato o reglas de entrada.
+ */
 public class ValidationException extends BusinessException {
 
     public ValidationException(String message) {

@@ -17,6 +17,9 @@ import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 
+/**
+ * Traduce las excepciones del microservicio a respuestas HTTP consistentes.
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor

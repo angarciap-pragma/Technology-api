@@ -2,6 +2,7 @@ package com.onclass.technology.domain.usecase;
 
 import com.onclass.technology.application.service.CreateTechnologyService;
 import com.onclass.technology.domain.exception.ConflictException;
+import com.onclass.technology.domain.exception.ValidationException;
 import com.onclass.technology.domain.model.Technology;
 import com.onclass.technology.domain.port.TechnologyRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -68,10 +68,6 @@ class CreateTechnologyServiceTest { // Agrupa pruebas unitarias del servicio de 
         Technology request = Technology.create("Node.js", "JavaScript runtime"); // Simula una tecnologia valida.
         // Define que el nombre ya existe.
         when(technologyRepositoryPort.existsByNormalizedName(eq("node.js"))).thenReturn(Mono.just(true)); // El repositorio responde que si hay duplicado.
-        // Se mockea save para evitar NPE por evaluacion eager de switchIfEmpty.
-        when(technologyRepositoryPort.save(any(Technology.class)))
-                .thenReturn(Mono.just(Technology.rehydrate(99L, "Node.js", "JavaScript runtime"))); // Se deja una respuesta defensiva aunque no deberia usarse.
-
         // Ejecuta el caso de uso y valida el error esperado.
         StepVerifier.create(createTechnologyService.createTechnology(request))
                 .expectErrorMatches(error ->
@@ -83,8 +79,11 @@ class CreateTechnologyServiceTest { // Agrupa pruebas unitarias del servicio de 
     // Verifica que no se permita payload nulo.
     @Test
     void createTechnologyShouldFailWhenPayloadIsNull() { // Verifica el comportamiento actual ante entrada nula.
-        // La implementacion actual no valida null y lanza NullPointerException en llamada directa.
-        assertThrows(NullPointerException.class, () -> createTechnologyService.createTechnology(null)); // Confirma la excepcion actual para documentar el comportamiento.
+        StepVerifier.create(createTechnologyService.createTechnology(null))
+                .expectErrorMatches(error ->
+                        error instanceof ValidationException
+                                && error.getMessage().equals("Technology payload is required"))
+                .verify();
     }
 
     // Verifica el comportamiento actual: el servicio permite guardar aun si llega id.

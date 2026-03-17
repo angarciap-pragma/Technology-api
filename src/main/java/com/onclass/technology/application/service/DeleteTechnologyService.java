@@ -6,17 +6,20 @@ import com.onclass.technology.domain.port.TechnologyRepositoryPort;
 import com.onclass.technology.domain.usecase.DeleteTechnologyUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 
+/**
+ * Implementa el caso de uso encargado de eliminar tecnologias existentes.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class DeleteTechnologyService implements DeleteTechnologyUseCase {
 
     private final TechnologyRepositoryPort technologyRepositoryPort;
+    private final TransactionalOperator transactionalOperator;
 
     @Override
-    @Transactional
     public Mono<Void> deleteById(Long id) {
 
         if (id == null || id <= 0) {
@@ -24,10 +27,13 @@ public class DeleteTechnologyService implements DeleteTechnologyUseCase {
         }
 
         return technologyRepositoryPort.existsById(id)
-                .filter(Boolean.TRUE::equals)// si exists = true pasa el filtro
-                .doOnNext(exists -> log.warn("Technology not found for deletion id={}", id))
-                .switchIfEmpty(Mono.error(new NotFoundException("Technology not found")))// si no existe, lanzar error
-                .flatMap(exists -> technologyRepositoryPort.deleteById(id))// si existe, ejecutar delete
+                .filter(Boolean.TRUE::equals)
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.warn("Technology not found for deletion id={}", id);
+                    return Mono.error(new NotFoundException("Technology not found"));
+                }))
+                .flatMap(exists -> technologyRepositoryPort.deleteById(id))
+                .as(transactionalOperator::transactional)
                 .doOnSuccess(unused -> log.info("Technology deleted id={}", id));
     }
 }

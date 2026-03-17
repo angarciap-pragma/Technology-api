@@ -1,9 +1,9 @@
 package com.onclass.technology.domain.model;
 
-import com.onclass.technology.domain.exception.ValidationException; // Importa la excepcion esperada en validaciones.
-import org.junit.jupiter.api.Test; // Importa la anotacion que marca un metodo como prueba.
+import com.onclass.technology.domain.exception.ValidationException;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals; // Permite comparar el valor esperado con el real.
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows; // Permite verificar que una accion lance una excepcion.
 
 // Prueba invariantes del modelo de dominio Technology.
